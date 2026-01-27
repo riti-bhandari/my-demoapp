@@ -16,11 +16,25 @@ jobs:
     #1 checkout the source code
     - name: Checkout repository
       uses: actions/checkout@v4
-      
+
     #2 Login to docker hub
+    - name: Login to dockerhub
+      uses: docker/login-action@v3
+      with:
+        username: ${{secrets.DOCKERHUB_USERNAME}}
+        password: ${{secrets.DOCKERHUB_TOKEN}}
+      
+    #2 Build docker image
     - name: Build Docker Image
       run: |
-          docker build -t java-app:ci .
+          docker build -t dockertech28/java-app:ci .
+    #3 Push image to dockerhub
+    - name: Push Docker Image to Registry
+      run: |
+          docker push dockertech28/java-app:ci
+
+
+
 
 
 
