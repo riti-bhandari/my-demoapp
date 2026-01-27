@@ -1,29 +1,26 @@
-name: My First CI Pipeline
+name: DemoApp CICD pipeline deploy on GCP
 
 on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  build:
+  ci:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    #1 checkout the source code
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    #2 Login to docker hub
+    - name: Build Docker Image
+      run: |
+          docker build -t java-app:ci .
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
 
-      - name: Install dependencies
-        run: npm install
-
-      - name: Run tests
-        run: npm test
-
-      - name: Build project
-        run: npm run build
 
