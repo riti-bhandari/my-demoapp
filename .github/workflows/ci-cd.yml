@@ -17,6 +17,13 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    #2 Read version file
+    - name: tag image
+      id: version
+      run: |
+        TAG="${GITHUB_REF#refs/tags/}"
+        echo "tag=$TAG" >> $GITHUB_OUTPUT
+
     #2 Login to docker hub
     - name: Login to dockerhub
       uses: docker/login-action@v3
@@ -24,11 +31,11 @@ jobs:
         username: ${{secrets.DOCKERHUB_USERNAME}}
         password: ${{secrets.DOCKERHUB_TOKEN}}
       
-    #2 Build docker image
+    #3 Build docker image
     - name: Build Docker Image
       run: |
-          docker build -t dockertech28/java-app:ci .
-    #3 Push image to dockerhub
+          docker build -t ${{secrets.DOCKERHUB_USERNAME}}/java-app:ci .
+    #4 Push image to dockerhub
     - name: Push Docker Image to Registry
       run: |
           docker push dockertech28/java-app:ci
