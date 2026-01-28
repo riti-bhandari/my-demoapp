@@ -34,11 +34,11 @@ jobs:
     #3 Build docker image
     - name: Build Docker Image
       run: |
-          docker build -t ${{secrets.DOCKERHUB_USERNAME}}/java-app:ci .
+          docker build -t ${{secrets.DOCKERHUB_USERNAME}}/java-app:${{TAG}} .
     #4 Push image to dockerhub
     - name: Push Docker Image to Registry
       run: |
-          docker push dockertech28/java-app:${{GITHUB_OUTPUT}}
+          docker push dockertech28/java-app:${{TAG}}
 
 
 
