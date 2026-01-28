@@ -38,7 +38,7 @@ jobs:
     #4 Push image to dockerhub
     - name: Push Docker Image to Registry
       run: |
-          docker push dockertech28/java-app:ci
+          docker push dockertech28/java-app:${{TAG}}
 
 
 
