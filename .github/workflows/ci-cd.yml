@@ -21,11 +21,11 @@ jobs:
         with:
           fetch-depth: 0   # IMPORTANT: fetch tags
 
-      # 2️⃣ Fetch all tags
+      # 2️ Fetch all tags
       - name: Fetch git tags
         run: git fetch --tags
 
-      # 3️⃣ Generate semantic version
+      # 3️ Generate semantic version
       - name: Generate semantic version
         run: |
           # Get branch name
@@ -51,19 +51,26 @@ jobs:
 
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
 
-      # 4️⃣ Create git tag (only once per commit)
+      # 4 Create git tag (only once per commit)
       - name: Create git tag
         run: |
           git tag v${NEW_VERSION}
           git push origin v${NEW_VERSION}
           echo "v${NEW_VERSION}"
 
-      # 5️⃣ Build Docker image (no dependency install here)
+          #2 Login to docker hub
+      - name: Login to dockerhub
+        uses: docker/login-action@v3
+        with:
+          username: ${{secrets.DOCKERHUB_USERNAME}}
+          password: ${{secrets.DOCKERHUB_TOKEN}}
+
+      # 5️Build Docker image (no dependency install here)
       - name: Build Docker image
         run: |
           docker build -t my-app:${NEW_VERSION} .
 
-      # 6️⃣ (Optional) Push Docker image
+      # 6️ (Optional) Push Docker image
       # Uncomment when Docker registry is ready
       #
       # - name: Login to Docker registry
