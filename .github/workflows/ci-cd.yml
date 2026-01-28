@@ -21,8 +21,11 @@ jobs:
     - name: tag image
       id: version
       run: |
-        TAG="${GITHUB_REF#refs/tags/}"
-        echo "tag=$TAG" >> $GITHUB_OUTPUT
+        if [[ "${GITHUB_REF_NAME}" == "main" ]]; then
+          echo "TAG=prod" >> $GITHUB_ENV
+        else
+          echo "TAG=dev" >> $GITHUB_ENV
+        fi
 
     #2 Login to docker hub
     - name: Login to dockerhub
