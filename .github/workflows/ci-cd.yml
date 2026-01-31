@@ -1,4 +1,4 @@
-name: Docker CI with Semantic Versioning
+name: Docker CI Multi-Branch Pipeline
 
 permissions:
   contents: write
@@ -6,83 +6,118 @@ permissions:
 
 on:
   pull_request:
-    types: [closed]
     branches:
-       - release
+      - release
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - closed
 
 jobs:
   ci:
-    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
     steps:
-      # 1 Checkout code (required for git tags)
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0   # IMPORTANT: fetch tags
+    # ----------------------------
+    # 1. Checkout
+    # ----------------------------
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
-      # 2️ Fetch all tags
-      - name: Fetch git tags
-        run: git fetch --tags
+    # ----------------------------
+    # 2. Security Scan
+    # ----------------------------
+    - name: Run Gitleaks secret scan
+      uses: gitleaks/gitleaks-action@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # 3️ Generate semantic version
-      - name: Get latest tag
-        run: | 
-               LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-               echo "LAST_TAG=$LAST_TAG" >> $GITHUB_ENV
+    # ----------------------------
+    # 3. Fetch tags
+    # ----------------------------
+    - name: Fetch git tags
+      run: git fetch --tags
 
-      - name: Decide version bump
-        run: |
-          VERSION=${LAST_TAG#v}
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+    # ----------------------------
+    # 4. Get latest tag
+    # ----------------------------
+    - name: Get latest tag
+      run: |
+        LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+        echo "LAST_TAG=$LAST_TAG" >> $GITHUB_ENV
 
-          SOURCE_BRANCH="${{ github.event.pull_request.head.ref }}"
-          TARGET_BRANCH="${{ github.event.pull_request.base.ref }}"
+    # ----------------------------
+    # 5. Decide version bump (ONLY AFTER MERGE)
+    # ----------------------------
+    - name: Decide version bump
+      if: github.event.pull_request.merged == true
+      run: |
+        VERSION=${LAST_TAG#v}
+        IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
 
-          echo "Source: $SOURCE_BRANCH → Target: $TARGET_BRANCH"
+        SOURCE_BRANCH="${{ github.event.pull_request.head.ref }}"
+        TARGET_BRANCH="${{ github.event.pull_request.base.ref }}"
 
-          if [[ "$SOURCE_BRANCH" == "hotfix/*" ]]; then
-            PATCH=$((PATCH + 1))
-          elif [[ "$SOURCE_BRANCH" == "main" ]]; then
-            MINOR=$((MINOR + 1))
-            PATCH=0
-          else
-            echo "Unsupported source branch: $SOURCE_BRANCH"
-            exit 1
-          fi
+        echo "Source: $SOURCE_BRANCH → Target: $TARGET_BRANCH"
 
-          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
-          NEW_TAG="v$NEW_VERSION"
+        if [[ "$SOURCE_BRANCH" == hotfix/* ]]; then
+          PATCH=$((PATCH + 1))
+        elif [[ "$SOURCE_BRANCH" == main ]]; then
+          MINOR=$((MINOR + 1))
+          PATCH=0
+        else
+          echo "Not a releasable branch → skipping version bump"
+          exit 0
+        fi
 
-          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
-          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
+        NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+        NEW_TAG="v$NEW_VERSION"
 
-      - name: Configure git user
-        run: |
-           git config user.name "riti-bhandari"
-           git config user.email "riti.bhandari16@gmail.com"
+        echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+        echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
 
-      # 4 Create git tag (only once per commit)
-      - name: Create & push tag
-        run: |
-          git tag -a "$NEW_TAG" -m "Release $NEW_TAG"
-          git push origin "$NEW_TAG"
-          echo "v${NEW_TAG}"
+    # ----------------------------
+    # 6. Git config (only when tagging)
+    # ----------------------------
+    - name: Configure git user
+      if: env.NEW_TAG != ''
+      run: |
+        git config user.name "github-actions"
+        git config user.email "github-actions@github.com"
 
-      - name: Login to dockerhub
-        uses: docker/login-action@v3
-        with:
-          username: ${{secrets.DOCKERHUB_USERNAME}}
-          password: ${{secrets.DOCKERHUB_TOKEN}}
+    # ----------------------------
+    # 7. Create & push tag
+    # ----------------------------
+    - name: Create & push git tag
+      if: env.NEW_TAG != ''
+      run: |
+        git tag -a "$NEW_TAG" -m "Release $NEW_TAG"
+        git push origin "$NEW_TAG"
 
-      # 5️ Build Docker image (no dependency install here)
-      - name: Build Docker image
-        run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/my-app:${NEW_VERSION} .
+    # ----------------------------
+    # 8. Docker Login
+    # ----------------------------
+    - name: Login to DockerHub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # 6️ (Optional)Push Docker image to Docker Hub  
-      - name: Push Docker image  
-        run: |  
-           docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-app:${NEW_VERSION}
-           
+    # ----------------------------
+    # 9. Docker Build (always)
+    # ----------------------------
+    - name: Build Docker image
+      run: |
+        IMAGE_TAG=${NEW_VERSION:-"pr-${{ github.event.pull_request.number }}"}
+        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/my-app:$IMAGE_TAG .
+
+    # ----------------------------
+    # 10. Docker Push (ONLY AFTER MERGE)
+    # ----------------------------
+    - name: Push Docker image
+      if: env.NEW_VERSION != ''
+      run: |
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-app:${NEW_VERSION}
