@@ -63,15 +63,15 @@ jobs:
 
         echo "Source: $SOURCE_BRANCH → Target: $TARGET_BRANCH"
 
-        if [[ "$SOURCE_BRANCH" == hotfix/* ]]; then
-          PATCH=$((PATCH + 1))
-        elif [[ "$SOURCE_BRANCH" == main ]]; then
-          MINOR=$((MINOR + 1))
-          PATCH=0
-        else
-          echo "Not a releasable branch → skipping version bump"
-          exit 0
-        fi
+          if [[ "$SOURCE_BRANCH" == "hotfix/*" ]]; then
+            PATCH=$((PATCH + 1))
+          elif [[ "$SOURCE_BRANCH" == "main" ]]; then
+            MINOR=$((MINOR + 1))
+            PATCH=0
+          else
+            echo "Unsupported source branch: $SOURCE_BRANCH"
+            exit 1
+          fi
 
         NEW_VERSION="$MAJOR.$MINOR.$PATCH"
         NEW_TAG="v$NEW_VERSION"
@@ -114,10 +114,8 @@ jobs:
         IMAGE_TAG=${NEW_VERSION:-"pr-${{ github.event.pull_request.number }}"}
         docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/my-app:$IMAGE_TAG .
 
-    # ----------------------------
-    # 10. Docker Push (ONLY AFTER MERGE)
-    # ----------------------------
-    - name: Push Docker image
-      if: env.NEW_VERSION != ''
-      run: |
-        docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-app:${NEW_VERSION}
+      # 6️ (Optional)Push Docker image to Docker Hub  
+      - name: Push Docker image  
+        run: |  
+           docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-app:${NEW_VERSION}
+           
