@@ -22,7 +22,7 @@ jobs:
     - name: Run unit tests
       run: |
         chmod +x scripts/unit-test.sh
-        ./scripts/unit-test.sh
+        ./test-scripts/unit-test.sh
 
     - name: Run code linting
       run: mvn checkstyle:check
