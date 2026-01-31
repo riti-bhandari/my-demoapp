@@ -63,7 +63,7 @@ jobs:
 
         echo "Source: $SOURCE_BRANCH → Target: $TARGET_BRANCH"
 
-          if [[ "$SOURCE_BRANCH" == "hotfix/*" ]]; then
+          if [[ "$SOURCE_BRANCH" == "hotfix" ]]; then
             PATCH=$((PATCH + 1))
           elif [[ "$SOURCE_BRANCH" == "main" ]]; then
             MINOR=$((MINOR + 1))
