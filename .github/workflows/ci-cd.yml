@@ -13,7 +13,6 @@ on:
 
 jobs:
   ci:
-    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
 
     steps:
@@ -103,17 +102,15 @@ jobs:
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-    # ----------------------------
-    # 9. Docker Build (always)
+ 
     # ----------------------------
     - name: Build Docker image
       run: |
-        IMAGE_TAG=${NEW_VERSION:-"pr-${{ github.event.pull_request.number }}"}
-        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/my-app:$IMAGE_TAG .
+         IMAGE_TAG=${NEW_VERSION:-"pr-${{ github.event.pull_request.number }}"}
+         docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/my-app:$IMAGE_TAG .
 
-      # 6️ (Optional)Push Docker image to Docker Hub  
-      - name: Push Docker image  
-        run: |  
-           docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-app:${NEW_VERSION}
+    - name: Push Docker image
+      if: env.NEW_VERSION != ''
+      run: |
+         docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-app:${NEW_VERSION}
            
