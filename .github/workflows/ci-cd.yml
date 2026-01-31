@@ -6,15 +6,8 @@ permissions:
 
 on:
   pull_request:
-<<<<<<< HEAD
     branches: [release]
     types: [closed]
-=======
-    branches:
-      - release
-    types:
-      - closed
->>>>>>> fb8e998c0bab8ffb84fb9ea8b4dabf306d7f4bd3
 
 jobs:
   ci:
@@ -59,7 +52,6 @@ jobs:
 
         SOURCE_BRANCH="${{ github.event.pull_request.head.ref }}"
 
-<<<<<<< HEAD
         if [[ "$SOURCE_BRANCH" == hotfix/* ]]; then
           PATCH=$((PATCH + 1))
         elif [[ "$SOURCE_BRANCH" == main ]]; then
@@ -69,19 +61,6 @@ jobs:
           echo "Non-releasable branch"
           exit 0
         fi
-=======
-        echo "Source: $SOURCE_BRANCH → Target: $TARGET_BRANCH"
-
-          if [[ "$SOURCE_BRANCH" == "hotfix" ]]; then
-            PATCH=$((PATCH + 1))
-          elif [[ "$SOURCE_BRANCH" == "main" ]]; then
-            MINOR=$((MINOR + 1))
-            PATCH=0
-          else
-            echo "Unsupported source branch: $SOURCE_BRANCH"
-            exit 1
-          fi
->>>>>>> fb8e998c0bab8ffb84fb9ea8b4dabf306d7f4bd3
 
         NEW_VERSION="$MAJOR.$MINOR.$PATCH"
         NEW_TAG="v$NEW_VERSION"
@@ -111,7 +90,6 @@ jobs:
       run: |
         docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/my-app:${NEW_VERSION} .
 
-<<<<<<< HEAD
     - name: Scan Docker image with Trivy
       uses: aquasecurity/trivy-action@0.20.0
       with:
@@ -124,10 +102,3 @@ jobs:
       if: env.NEW_VERSION != ''
       run: |
         docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-app:${NEW_VERSION}
-=======
-      # 6️ (Optional)Push Docker image to Docker Hub  
-      - name: Push Docker image  
-        run: |  
-           docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-app:${NEW_VERSION}
-           
->>>>>>> fb8e998c0bab8ffb84fb9ea8b4dabf306d7f4bd3
