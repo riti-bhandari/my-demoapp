@@ -6,10 +6,9 @@ permissions:
 
 on:
   pull_request:
+    types: [closed]
     branches:
       - release
-    types:
-      - closed
 
 jobs:
   ci:
