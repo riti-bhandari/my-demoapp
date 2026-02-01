@@ -47,7 +47,6 @@ jobs:
     - name: Decide version bump
       if: github.event.pull_request.merged == true
       run: |
-        |
         VERSION=${LAST_TAG#v}
         IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
     
