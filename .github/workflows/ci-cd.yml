@@ -86,6 +86,14 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+    - name: Set image tag
+      run: |
+        if [ -n "${NEW_VERSION}" ]; then
+          echo "IMAGE_TAG=${NEW_VERSION}" >> $GITHUB_ENV
+        else
+          echo "IMAGE_TAG=pr-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+        fi
+
     - name: Build Docker image
       run: |
             IMAGE_TAG=${NEW_VERSION:-pr-${{ github.event.pull_request.number }}}
