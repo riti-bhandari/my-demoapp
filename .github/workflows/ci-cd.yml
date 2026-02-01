@@ -47,18 +47,23 @@ jobs:
     - name: Decide version bump
       if: github.event.pull_request.merged == true
       run: |
+        |
         VERSION=${LAST_TAG#v}
         IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
-
+    
         SOURCE_BRANCH="${{ github.event.pull_request.head.ref }}"
-
-        if [[ "$SOURCE_BRANCH" == hotfix/* ]]; then
+        TARGET_BRANCH="${{ github.event.pull_request.base.ref }}"
+    
+        echo "Source: $SOURCE_BRANCH"
+        echo "Target: $TARGET_BRANCH"
+    
+        if [[ "$SOURCE_BRANCH" == hotfix && "$TARGET_BRANCH" == "release" ]]; then
           PATCH=$((PATCH + 1))
-        elif [[ "$SOURCE_BRANCH" == main ]]; then
+        elif [[ "$SOURCE_BRANCH" == main && "$TARGET_BRANCH" == "release" ]]; then
           MINOR=$((MINOR + 1))
           PATCH=0
         else
-          echo "Non-releasable branch"
+          echo "No version bump required"
           exit 0
         fi
 
