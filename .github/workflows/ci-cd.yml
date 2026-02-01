@@ -121,3 +121,5 @@ jobs:
       if: env.NEW_VERSION != ''
       run: |
         docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-app:${NEW_VERSION}
+
+        
