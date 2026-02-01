@@ -130,7 +130,7 @@ jobs:
 
         
   # 🔽 DOWNSTREAM JOB (USES needs.ci.outputs.image_name)
-  downstream-test:
+  CD:
     needs: ci
     runs-on: ubuntu-latest
 
