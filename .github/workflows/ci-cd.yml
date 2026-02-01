@@ -12,6 +12,9 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
+    
+    outputs:
+      image_name: ${{ steps.set-image-name.outputs.image_name }}
 
     steps:
     - name: Checkout repository
@@ -105,6 +108,9 @@ jobs:
           echo "IMAGE_TAG=pr-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
         fi
 
+        echo "Image built in CI: $IMAGE_NAME"
+        echo "image_name=$IMAGE_NAME" >> $GITHUB_OUTPUT
+        
     - name: Build Docker image
       run: |
             docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/my-app:${IMAGE_TAG} .
@@ -122,4 +128,15 @@ jobs:
       run: |
         docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-app:${NEW_VERSION}
 
+        
+  # 🔽 DOWNSTREAM JOB (USES needs.ci.outputs.image_name)
+  downstream-test:
+    needs: ci
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Print image name from upstream CI job
+      run: |
+        echo "Image received from upstream (ci job):"
+        echo "${{ needs.ci.outputs.image_name }}"
         
