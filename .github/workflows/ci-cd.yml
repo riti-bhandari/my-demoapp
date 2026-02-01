@@ -6,7 +6,7 @@ permissions:
 
 on:
   pull_request:
-    branches: [release]
+    branches: [main, release]
     types: [closed]
 
 jobs:
@@ -56,21 +56,28 @@ jobs:
         echo "Source: $SOURCE_BRANCH"
         echo "Target: $TARGET_BRANCH"
     
-        if [[ "$SOURCE_BRANCH" == hotfix && "$TARGET_BRANCH" == "release" ]]; then
+        # DEFAULT: no tagging
+        SHOULD_TAG=false
+    
+        if [[ "$SOURCE_BRANCH" == hotfix/* && "$TARGET_BRANCH" == "release" ]]; then
           PATCH=$((PATCH + 1))
+          SHOULD_TAG=true
+    
         elif [[ "$SOURCE_BRANCH" == main && "$TARGET_BRANCH" == "release" ]]; then
           MINOR=$((MINOR + 1))
           PATCH=0
-        else
-          echo "No version bump required"
-          exit 0
+          SHOULD_TAG=true
         fi
-
-        NEW_VERSION="$MAJOR.$MINOR.$PATCH"
-        NEW_TAG="v$NEW_VERSION"
-
-        echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
-        echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
+    
+        if [[ "$SHOULD_TAG" == "true" ]]; then
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+          NEW_TAG="v$NEW_VERSION"
+    
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
+        else
+          echo "No tagging for this merge"
+        fi
 
     - name: Configure git user
       if: env.NEW_TAG != ''
