@@ -96,7 +96,6 @@ jobs:
 
     - name: Build Docker image
       run: |
-            IMAGE_TAG=${NEW_VERSION:-pr-${{ github.event.pull_request.number }}}
             docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/my-app:${IMAGE_TAG} .
 
     - name: Scan Docker image with Trivy
