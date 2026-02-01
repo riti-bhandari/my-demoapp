@@ -6,7 +6,7 @@ permissions:
 
 on:
   pull_request:
-    branches: [release]
+    branches: [main, release]
     types: [closed]
 
 jobs:
@@ -63,7 +63,7 @@ jobs:
           PATCH=$((PATCH + 1))
           SHOULD_TAG=true
     
-        elif [[ "$SOURCE_BRANCH" == release/* && "$TARGET_BRANCH" == "main" ]]; then
+        elif [[ "$SOURCE_BRANCH" == main && "$TARGET_BRANCH" == "release" ]]; then
           MINOR=$((MINOR + 1))
           PATCH=0
           SHOULD_TAG=true
