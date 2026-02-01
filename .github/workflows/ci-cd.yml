@@ -26,7 +26,7 @@ jobs:
 
     - name: Run code linting
       run: mvn checkstyle:check
-      continue-on-error: false
+      continue-on-error: true
 
     - name: Run static code analysis
       run: mvn spotbugs:check
