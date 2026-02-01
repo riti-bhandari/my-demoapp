@@ -6,7 +6,7 @@ permissions:
 
 on:
   pull_request:
-    branches: [release]
+    branches: [main, release]
     types: [closed]
 
 jobs:
