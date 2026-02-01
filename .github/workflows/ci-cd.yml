@@ -19,6 +19,18 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Run unit tests
+      run: |
+        chmod +x test-scripts/unit-test.sh
+        ./test-scripts/unit-test.sh
+
+    - name: Run code linting
+      run: mvn checkstyle:check
+      continue-on-error: false
+
+    - name: Run static code analysis
+      run: mvn spotbugs:check
+
     - name: Run Gitleaks secret scan
       uses: gitleaks/gitleaks-action@v2
       env:
@@ -77,6 +89,14 @@ jobs:
     - name: Build Docker image
       run: |
         docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/my-app:${NEW_VERSION} .
+
+    - name: Scan Docker image with Trivy
+      uses: aquasecurity/trivy-action@0.20.0
+      with:
+        image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/my-app:${NEW_VERSION:-pr-${{ github.event.pull_request.number }}}
+        format: table
+        exit-code: 1
+        severity: HIGH,CRITICAL
 
     - name: Push Docker image
       if: env.NEW_VERSION != ''
