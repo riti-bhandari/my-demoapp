@@ -59,7 +59,7 @@ jobs:
         # DEFAULT: no tagging
         SHOULD_TAG=false
     
-        if [[ "$SOURCE_BRANCH" == hotfix/* && "$TARGET_BRANCH" == "release" ]]; then
+        if [[ "$SOURCE_BRANCH" == hotfix && "$TARGET_BRANCH" == "release" ]]; then
           PATCH=$((PATCH + 1))
           SHOULD_TAG=true
     
