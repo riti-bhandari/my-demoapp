@@ -8,12 +8,12 @@ permissions:
 on:
   pull_request:
     branches: [main, release]
-    types: [closed]
+    types:  [opened, synchronize, reopened]
 
 jobs:
-  unit-tests:
+  call-unit-tests:
     name: Unit Tests
-    uses: riti-bhandari/cicd-reusable-template/.github/workflows/unittest.yml@main
+    uses: riti-bhandari/CICD_demoapp/.github/workflows/unit-test.yml@main
     with:
       working-directory: .
 
