@@ -11,7 +11,7 @@ on:
     types:  [opened, synchronize, reopened]
 
 jobs:
-  unit-tests:
+  call-unit-tests:
     name: Unit Tests
     uses: riti-bhandari/CICD_demoapp/.github/workflows/unit-test.yml@main
     with:
