@@ -1,4 +1,4 @@
-name: Docker CI/CD Multi-Branch Pipeline
+name: Docker CI Multi-Branch Pipeline
 
 permissions:
   contents: write
@@ -8,19 +8,15 @@ permissions:
 on:
   pull_request:
     branches: [main, release]
-    types: [opened, synchronize, reopened]
+    types: [closed]
 
 jobs:
   unit-tests:
     name: Unit Tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - run: |
-          chmod +x test-scripts/unit-test.sh
-          ./test-scripts/unit-test.sh
+    uses: riti-bhandari/cicd-reusable-template/.github/workflows/unittest.yml@main
+    with:
+      working-directory: .
+
 
   lint:
     name: Lint Checkstyle
