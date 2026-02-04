@@ -9,7 +9,6 @@ on:
   pull_request:
     branches: [main, release]
     types:  [opened, synchronize, reopened,closed]
-
 jobs:
   call-unit-tests:
     name: Unit Tests
@@ -105,7 +104,7 @@ jobs:
 
  deploy:
     name: Deploy to GCP VM
-    needs: release
+    needs: [release]
     if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
     uses: riti-bhandari/CICD_demoapp/.github/workflows/deploy.yml@main
     with:
