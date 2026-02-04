@@ -18,36 +18,16 @@ jobs:
       working-directory: .
 
 
-  lint:
-    name: Lint Checkstyle
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-      - run: mvn checkstyle:check
-
-  spotbugs:
-    name: SpotBugs Scan
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: mvn spotbugs:check
-
-  gitleaks:
-    name: Secret Scan (Gitleaks)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  call-security-checks: 
+    name: Security code checks
+    uses: riti-bhandari/CICD_demoapp/.github/workflows/Security-checks.yml@main
+    with:
+      working-directory: .
 
   docker-build-scan:
     name: Docker Build & Trivy Scan
     runs-on: ubuntu-latest
-    needs: [unit-tests, lint, spotbugs, gitleaks]
+    needs: [call-unit-tests, call-security-checks]
 
     steps:
       - uses: actions/checkout@v4
