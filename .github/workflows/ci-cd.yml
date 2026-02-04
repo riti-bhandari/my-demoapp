@@ -28,6 +28,11 @@ jobs:
     name: Docker Build & Trivy Scan
     needs: [call-unit-tests, call-security-checks]
     uses: riti-bhandari/CICD_demoapp/.github/workflows/docker-build.yml@main
+    with:
+      image-name: java-app
+      image-tag: ci
+      dockerfile-path: Dockerfile
+      build-context: .
 
   release:
     name: Tag & Push Docker Image
