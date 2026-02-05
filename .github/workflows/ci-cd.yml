@@ -38,6 +38,9 @@ jobs:
     if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
     needs: [ docker-build-scan ]
     uses: riti-bhandari/CICD_demoapp/.github/workflows/tag-push.yml@main
+    secrets:
+      DOCKERHUB_USERNAME: ${{secrets.DOCKERHUB_USERNAME}}
+      DOCKERHUB_TOKEN: ${{secrets.DOCKERHUB_TOKEN}}
     with:
       image-name: ${DOCKERHUB_USERNAME}/my-app
       build-context: .
