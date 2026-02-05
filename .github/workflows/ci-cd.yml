@@ -45,7 +45,8 @@ jobs:
       image-name: ${DOCKERHUB_USERNAME}/my-app
       build-context: .
       dockerfile-path: Dockerfile
-    
+  
+
   deploy:
     name: Deploy to Azure VM
     if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
@@ -56,9 +57,9 @@ jobs:
       image-tag: ${{ needs.release.outputs.new-tag }}
       container-name: my-app
       app-port: 8080
-      vm-host: ${{ secrets.AZURE_VM_HOST }}
-      vm-user: ${{ secrets.AZURE_VM_USER }}
     secrets:
       VM_SSH_KEY: ${{ secrets.AZURE_VM_SSH_KEY }}
+      vm-host: ${{ secrets.AZURE_VM_HOST }}
+      vm-user: ${{ secrets.AZURE_VM_USER }}
 
     
