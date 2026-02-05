@@ -35,7 +35,7 @@ jobs:
 
   release:
     name: Tag & Push Docker Image
-    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
+    if: github.event_name == 'push' && github.event.pull_request.merged == true
     needs: [ docker-build-scan ]
     uses: riti-bhandari/CICD_demoapp/.github/workflows/tag-push.yml@main
     secrets:
