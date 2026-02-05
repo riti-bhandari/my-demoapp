@@ -50,8 +50,8 @@ jobs:
 
   deploy:
     name: Deploy to Azure VM
-    needs: [release]
     if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
+    needs: [release]
     uses: riti-bhandari/CICD_demoapp/.github/workflows/deploy.yml@main
     with:
       image-name: ${{ secrets.DOCKERHUB_USERNAME }}/my-app
