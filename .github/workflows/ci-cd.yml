@@ -9,6 +9,7 @@ on:
   pull_request:
     branches: [main, release]
     types:  [opened, synchronize, reopened,closed]
+    
 jobs:
   call-unit-tests:
     name: Unit Tests
