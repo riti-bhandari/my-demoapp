@@ -42,7 +42,7 @@ jobs:
       DOCKERHUB_USERNAME: ${{secrets.DOCKERHUB_USERNAME}}
       DOCKERHUB_TOKEN: ${{secrets.DOCKERHUB_TOKEN}}
     with:
-      image-name: ${DOCKERHUB_USERNAME}/my-app
+      image-name: ${secrets.DOCKERHUB_USERNAME}/my-app
       build-context: .
       dockerfile-path: Dockerfile
   
