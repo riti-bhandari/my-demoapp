@@ -45,11 +45,7 @@ jobs:
       image-name: ${DOCKERHUB_USERNAME}/my-app
       build-context: .
       dockerfile-path: Dockerfile
-    secrets:
-        DOCKERHUB_USERNAME: ${{secrets.DOCKERHUB_USERNAME}}
-        DOCKERHUB_TOKEN: ${{secrets.DOCKERHUB_TOKEN}}
-    
-    
+  
 
   deploy:
     name: Deploy to Azure VM
@@ -57,13 +53,13 @@ jobs:
     needs: [release]
     uses: riti-bhandari/CICD_demoapp/.github/workflows/deploy.yml@main
     with:
-      image-name: ${{ secrets.DOCKERHUB_USERNAME }}/my-app
+      image-name: ${DOCKERHUB_USERNAME}/my-app
       image-tag: ${{ needs.release.outputs.new-tag }}
       container-name: my-app
       app-port: 8080
-      vm-host: ${{ secrets.AZURE_VM_HOST }}
-      vm-user: ${{ secrets.AZURE_VM_USER }}
     secrets:
       VM_SSH_KEY: ${{ secrets.AZURE_VM_SSH_KEY }}
+      vm-host: ${{ secrets.AZURE_VM_HOST }}
+      vm-user: ${{ secrets.AZURE_VM_USER }}
 
     
