@@ -35,7 +35,7 @@ jobs:
       build-context: .
 
   release:
-    name: Tag & Push Docker Image
+    name: Tag and Push Docker Image
     uses: riti-bhandari/CICD_demoapp/.github/workflows/tag-push.yml@main
     secrets:
       DOCKERHUB_USERNAME: ${{secrets.DOCKERHUB_USERNAME}}
