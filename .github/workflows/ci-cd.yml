@@ -8,125 +8,58 @@ permissions:
 on:
   pull_request:
     branches: [main, release]
-    types: [closed]
-
+    types:  [opened, synchronize, reopened,closed]
 jobs:
-  unit-tests:
+  call-unit-tests:
     name: Unit Tests
-    uses: riti-bhandari/cicd-reusable-template/.github/workflows/unittest.yml@main
+    uses: riti-bhandari/CICD_demoapp/.github/workflows/unit-test.yml@main
     with:
       working-directory: .
 
 
-  lint:
-    name: Lint Checkstyle
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-      - run: mvn checkstyle:check
-
-  spotbugs:
-    name: SpotBugs Scan
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: mvn spotbugs:check
-
-  gitleaks:
-    name: Secret Scan (Gitleaks)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  call-security-checks: 
+    name: Security code checks
+    uses: riti-bhandari/CICD_demoapp/.github/workflows/Security-checks.yml@main
+    with:
+      working-directory: .
 
   docker-build-scan:
     name: Docker Build & Trivy Scan
-    runs-on: ubuntu-latest
-    needs: [unit-tests, lint, spotbugs, gitleaks]
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Build Docker image
-        run: docker build -t my-app:ci .
-
-      - name: Trivy Scan
-        uses: aquasecurity/trivy-action@0.20.0
-        with:
-          image-ref: my-app:ci
-          exit-code: 1
-          severity: HIGH,CRITICAL
+    needs: [call-unit-tests, call-security-checks]
+    uses: riti-bhandari/CICD_demoapp/.github/workflows/docker-build.yml@main
+    with:
+      image-name: my-app
+      image-tag: ci
+      dockerfile-path: Dockerfile
+      build-context: .
 
   release:
     name: Tag & Push Docker Image
-    if: github.event_name == 'push' || github.event.pull_request.merged == true
-    needs: docker-build-scan
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Fetch git tags
-        run: git fetch --tags
-
-      - name: Decide version bump
-        run: |
-          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-          VERSION=${LAST_TAG#v}
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
-
-          SOURCE_BRANCH="${{ github.event.pull_request.head.ref }}"
-          TARGET_BRANCH="${{ github.event.pull_request.base.ref }}"
-
-          echo "Source: $SOURCE_BRANCH"
-          echo "Target: $TARGET_BRANCH"
-
-          # DEFAULT: no tagging
-          SHOULD_TAG=false
+    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
+    needs: [ docker-build-scan ]
+    uses: riti-bhandari/CICD_demoapp/.github/workflows/tag-push.yml@main
+    secrets:
+      DOCKERHUB_USERNAME: ${{secrets.DOCKERHUB_USERNAME}}
+      DOCKERHUB_TOKEN: ${{secrets.DOCKERHUB_TOKEN}}
+    with:
+      image-name: ${DOCKERHUB_USERNAME}/my-app
+      build-context: .
+      dockerfile-path: Dockerfile
   
-          if [[ "$SOURCE_BRANCH" == hotfix && "$TARGET_BRANCH" == "release" ]]; then
-            PATCH=$((PATCH + 1))
-            SHOULD_TAG=true
-      
-          elif [[ "$SOURCE_BRANCH" == main && "$TARGET_BRANCH" == "release" ]]; then
-            MINOR=$((MINOR + 1))
-            PATCH=0
-            SHOULD_TAG=true
-          fi
-      
-          if [[ "$SHOULD_TAG" == "true" ]]; then
-            NEW_VERSION="$MAJOR.$MINOR.$PATCH"
-            NEW_TAG="v$NEW_VERSION"
-      
-            echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
-            echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
-          else
-            echo "No tagging for this merge"
-          fi
 
-      - name: Push tag
-        if: env.NEW_TAG != ''
-        run: |
-          git config user.name "riti-bhandari"
-          git config user.email "riti.bhandari16@gmail.com"
-          git tag -a "$NEW_TAG" -m "Release $NEW_TAG"
-          git push origin "$NEW_TAG"
+  deploy:
+    name: Deploy to Azure VM
+    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
+    needs: [release]
+    uses: riti-bhandari/CICD_demoapp/.github/workflows/deploy.yml@main
+    with:
+      image-name: ${DOCKERHUB_USERNAME}/my-app
+      image-tag: ${{ needs.release.outputs.new-tag }}
+      container-name: my-app
+      app-port: 8080
+    secrets:
+      VM_SSH_KEY: ${{ secrets.AZURE_VM_SSH_KEY }}
+      vm-host: ${{ secrets.AZURE_VM_HOST }}
+      vm-user: ${{ secrets.AZURE_VM_USER }}
 
-      - name: Login to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build & push image
-        if: env.NEW_TAG != ''
-        run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/my-app:${NEW_TAG#v} .
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-app:${NEW_TAG#v}
+    
