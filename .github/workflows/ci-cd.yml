@@ -39,22 +39,28 @@ jobs:
     needs: [ docker-build-scan ]
     uses: riti-bhandari/CICD_demoapp/.github/workflows/tag-push.yml@main
     with:
+      image-name: ${{ secrets.DOCKERHUB_USERNAME }}/my-app
       build-context: .
       dockerfile-path: Dockerfile
-      docker-username: ${{secrets.DOCKERHUB_USERNAME}}
-      secrets: ${{secrets.TOKEN}}
+      secrets:
+        DOCKERHUB_USERNAME: ${{secrets.DOCKERHUB_USERNAME}}
+        DOCKERHUB_TOKEN: ${{secrets.DOCKERHUB_TOKEN}}
     
     
 
- deploy:
-    name: Deploy to GCP VM
+  deploy:
+    name: Deploy to Azure VM
     needs: [release]
     if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
     uses: riti-bhandari/CICD_demoapp/.github/workflows/deploy.yml@main
     with:
       image-name: ${{ secrets.DOCKERHUB_USERNAME }}/my-app
-      image-tag: ${{ env.NEW_TAG }}
+      image-tag: ${{ needs.release.outputs.new-tag }}
       container-name: my-app
       app-port: 8080
+      vm-host: ${{ secrets.AZURE_VM_HOST }}
+      vm-user: ${{ secrets.AZURE_VM_USER }}
+    secrets:
+      VM_SSH_KEY: ${{ secrets.AZURE_VM_SSH_KEY }}
 
     
