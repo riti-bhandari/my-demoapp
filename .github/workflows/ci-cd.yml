@@ -1,4 +1,4 @@
-name: Docker CI/CD Multi-Branch Pipeline
+name: Docker CI-CD Multi-Branch Pipeline
 
 permissions:
   contents: write
@@ -8,7 +8,7 @@ permissions:
 on:
   pull_request:
     branches: [main, release]
-    types:  [opened, synchronize, reopened,closed]
+    types:  [opened, synchronize, reopened]
     
 jobs:
   call-unit-tests:
@@ -49,7 +49,6 @@ jobs:
 
   deploy:
     name: Deploy to Azure VM
-    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
     needs: [release]
     uses: riti-bhandari/CICD_demoapp/.github/workflows/deploy.yml@main
     with:
