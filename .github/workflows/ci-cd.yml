@@ -53,6 +53,7 @@ jobs:
     needs: [release]
     uses: riti-bhandari/CICD_demoapp/.github/workflows/deploy.yml@main
     with:
+      debug: true
       image-name: my-app
       image-tag: ${{ needs.release.outputs.LATEST_TAG }}
       container-name: my-app
