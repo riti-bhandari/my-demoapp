@@ -8,7 +8,7 @@ permissions:
 on:
   pull_request:
     branches: [main, release]
-    types:  [opened, synchronize, reopened]
+    types:  [opened, synchronize, reopened,closed]
     
 jobs:
   call-unit-tests:
@@ -60,7 +60,7 @@ jobs:
       app-port: 8080
     secrets:
       VM_SSH_KEY: ${{ secrets.AZURE_VM_SSH_KEY }}
-      VM-HOST: ${{ secrets.AZURE_VM_HOST }}
-      VM-USER: ${{ secrets.AZURE_VM_USER }}
+      VM_HOST: ${{ secrets.AZURE_VM_HOST }}
+      VM_USER: ${{ secrets.AZURE_VM_USER }}
 
     
