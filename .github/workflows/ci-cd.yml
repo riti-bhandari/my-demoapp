@@ -60,7 +60,7 @@ jobs:
       app-port: 8080
     secrets:
       VM_SSH_KEY: ${{ secrets.AZURE_VM_SSH_KEY }}
-      vm-host: ${{ secrets.AZURE_VM_HOST }}
-      vm-user: ${{ secrets.AZURE_VM_USER }}
+      VM-HOST: ${{ secrets.AZURE_VM_HOST }}
+      VM-USER: ${{ secrets.AZURE_VM_USER }}
 
     
