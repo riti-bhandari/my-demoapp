@@ -38,8 +38,8 @@ jobs:
     name: Tag and Push Docker Image
     uses: riti-bhandari/CICD_demoapp/.github/workflows/tag-push.yml@main
     secrets:
-      DOCKERHUB_USERNAME: ${{secrets.DOCKERHUB_USERNAME}}
-      DOCKERHUB_TOKEN: ${{secrets.DOCKERHUB_TOKEN}}
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
     with:
       debug: true
       image-name: my-app
