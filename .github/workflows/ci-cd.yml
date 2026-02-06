@@ -54,7 +54,7 @@ jobs:
     with:
       debug: true
       image-name: my-app
-      image-tag: ${{ needs.release.outputs.LATEST_TAG }}
+      image-tag: ${{ needs.release.outputs.latest-tag }}
       container-name: my-app
       app-port: 8080
     secrets:
