@@ -61,5 +61,6 @@ jobs:
       VM_SSH_KEY: ${{ secrets.AZURE_VM_SSH_KEY }}
       VM_HOST: ${{ secrets.AZURE_VM_HOST }}
       VM_USER: ${{ secrets.AZURE_VM_USER }}
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
 
     
