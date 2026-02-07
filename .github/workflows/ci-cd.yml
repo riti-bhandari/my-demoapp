@@ -1,4 +1,4 @@
-name: Docker CI Multi-Branch Pipeline
+name: Docker CI/CD Multi-Branch Pipeline
 
 permissions:
   contents: write
@@ -8,7 +8,8 @@ permissions:
 on:
   pull_request:
     branches: [main, release]
-    types:  [opened, synchronize, reopened,closed]
+    types:  [opened, synchronize, reopened]
+    
 jobs:
   call-unit-tests:
     name: Unit Tests
@@ -34,32 +35,33 @@ jobs:
       build-context: .
 
   release:
-    name: Tag & Push Docker Image
-    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
-    needs: [ docker-build-scan ]
+    name: Tag and Push Docker Image
     uses: riti-bhandari/CICD_demoapp/.github/workflows/tag-push.yml@main
     secrets:
-      DOCKERHUB_USERNAME: ${{secrets.DOCKERHUB_USERNAME}}
-      DOCKERHUB_TOKEN: ${{secrets.DOCKERHUB_TOKEN}}
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
     with:
-      image-name: ${DOCKERHUB_USERNAME}/my-app
+      debug: true
+      image-name: my-app
       build-context: .
       dockerfile-path: Dockerfile
   
 
   deploy:
     name: Deploy to Azure VM
-    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
     needs: [release]
     uses: riti-bhandari/CICD_demoapp/.github/workflows/deploy.yml@main
     with:
-      image-name: ${DOCKERHUB_USERNAME}/my-app
-      image-tag: ${{ needs.release.outputs.new-tag }}
+      debug: true
+      image-name: my-app
+      image-tag: ${{ needs.release.outputs.latest-tag }}
       container-name: my-app
       app-port: 8080
     secrets:
       VM_SSH_KEY: ${{ secrets.AZURE_VM_SSH_KEY }}
-      vm-host: ${{ secrets.AZURE_VM_HOST }}
-      vm-user: ${{ secrets.AZURE_VM_USER }}
+      VM_HOST: ${{ secrets.AZURE_VM_HOST }}
+      VM_USER: ${{ secrets.AZURE_VM_USER }}
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
     
