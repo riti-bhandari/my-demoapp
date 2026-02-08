@@ -9,6 +9,8 @@ on:
   pull_request:
     branches: [main, release]
     types:  [opened, synchronize, reopened]
+  push:
+    branches: [release,main]
     
 jobs:
   call-unit-tests:
@@ -36,6 +38,10 @@ jobs:
 
   release:
     name: Tag and Push Docker Image
+    if: >
+        github.event_name == 'push' &&
+        ( github.ref == 'refs/heads/release' || github.ref == 'refs/heads/main')
+    
     uses: riti-bhandari/CICD_demoapp/.github/workflows/tag-push.yml@main
     secrets:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
