@@ -54,20 +54,19 @@ jobs:
   
 
   deploy:
-    name: Deploy to Azure VM
-    needs: [release]
-    uses: riti-bhandari/CICD_demoapp/.github/workflows/deploy.yml@main
-    with:
-      debug: true
-      image-name: my-app
-      image-tag: ${{ needs.release.outputs.latest-tag }}
-      container-name: my-app
-      app-port: 8080
-    secrets:
-      VM_SSH_KEY: ${{ secrets.AZURE_VM_SSH_KEY }}
-      VM_HOST: ${{ secrets.AZURE_VM_HOST }}
-      VM_USER: ${{ secrets.AZURE_VM_USER }}
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-
-    
+      name: Deploy to AKS with Helm
+      needs: [release]
+      uses: riti-bhandari/CICD_demoapp/.github/workflows/deploy-helm.yml@main
+      with:
+        debug: true
+        image-name: my-app
+        image-tag: ${{ needs.release.outputs.latest-tag }}
+        environment: ${{ github.ref == 'refs/heads/release' && 'prod' || 'dev' }}
+        namespace: ${{ github.ref == 'refs/heads/release' && 'prod' || 'dev' }}
+        helm-values-file: ${{ github.ref == 'refs/heads/release' && 'values-prod.yaml' || 'values-dev.yaml' }}
+      secrets:
+        AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+        AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        AKS_RESOURCE_GROUP: ${{ secrets.AKS_RESOURCE_GROUP }}
+        AKS_CLUSTER_NAME: ${{ secrets.AKS_CLUSTER_NAME }}
