@@ -11,6 +11,10 @@ on:
     types:  [opened, synchronize, reopened]
   push:
     branches: [release,main]
+
+ env:
+    environment: ${{ github.ref == 'refs/heads/release' && 'prod' || 'dev' }}
+    release_name: my-app-${{ env.environment }}
     
 jobs:
   call-unit-tests:
@@ -54,20 +58,24 @@ jobs:
   
 
   deploy:
-      name: Deploy to AKS with Helm
-      needs: [release]
-      uses: riti-bhandari/CICD_demoapp/.github/workflows/deploy-helm.yml@main
-      with:
-        debug: true
-        image-name: my-app
-        image-tag: ${{ needs.release.outputs.latest-tag }}
-        environment: ${{ github.ref == 'refs/heads/release' && 'prod' || 'dev' }}
-        namespace: ${{ github.ref == 'refs/heads/release' && 'prod' || 'dev' }}
-        helm-values-file: ${{ github.ref == 'refs/heads/release' && 'values-prod.yaml' || 'values-dev.yaml' }}
-      secrets:
-        AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-        AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-        AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        AKS_RESOURCE_GROUP: ${{ secrets.AKS_RESOURCE_GROUP }}
-        AKS_CLUSTER_NAME: ${{ secrets.AKS_CLUSTER_NAME }}
-        DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+    name: Deploy to AKS with Helm
+    needs: [release]
+    uses: riti-bhandari/CICD_demoapp/.github/workflows/deploy-helm.yml@main
+    with:
+      debug: true
+      image-name: my-app
+      image-tag: ${{ needs.release.outputs.latest-tag }}
+      environment: ${{ env.environment }}
+      release_name: ${{ env.release_name }}
+      namespace: ${{ env.environment }}
+      helm-values-file: ${{ env.environment == 'prod' && 'values-prod.yaml' || 'values-dev.yaml' }}
+    secrets:
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      AKS_RESOURCE_GROUP: ${{ secrets.AKS_RESOURCE_GROUP }}
+      AKS_CLUSTER_NAME: ${{ secrets.AKS_CLUSTER_NAME }}
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+
+
+      
