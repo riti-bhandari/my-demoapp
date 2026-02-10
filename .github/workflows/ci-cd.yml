@@ -1,4 +1,4 @@
-name: Docker CI-CD Multi-Branch Pipeline
+name: Docker CI/CD Multi-Branch Pipeline
 
 permissions:
   contents: write
@@ -9,6 +9,12 @@ on:
   pull_request:
     branches: [main, release]
     types:  [opened, synchronize, reopened]
+  push:
+    branches: [release,main]
+
+ env:
+    environment: ${{ github.ref == 'refs/heads/release' && 'prod' || 'dev' }}
+    release_name: my-app-${{ env.environment }}
     
 jobs:
   call-unit-tests:
@@ -36,6 +42,10 @@ jobs:
 
   release:
     name: Tag and Push Docker Image
+    if: >
+        github.event_name == 'push' &&
+        ( github.ref == 'refs/heads/release' || github.ref == 'refs/heads/main')
+    
     uses: riti-bhandari/CICD_demoapp/.github/workflows/tag-push.yml@main
     secrets:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -48,20 +58,24 @@ jobs:
   
 
   deploy:
-    name: Deploy to Azure VM
+    name: Deploy to AKS with Helm
     needs: [release]
-    uses: riti-bhandari/CICD_demoapp/.github/workflows/deploy.yml@main
+    uses: riti-bhandari/CICD_demoapp/.github/workflows/deploy-helm.yml@main
     with:
       debug: true
       image-name: my-app
       image-tag: ${{ needs.release.outputs.latest-tag }}
-      container-name: my-app
-      app-port: 8080
+      environment: ${{ env.environment }}
+      release_name: ${{ env.release_name }}
+      namespace: ${{ env.environment }}
+      helm-values-file: ${{ env.environment == 'prod' && 'values-prod.yaml' || 'values-dev.yaml' }}
     secrets:
-      VM_SSH_KEY: ${{ secrets.AZURE_VM_SSH_KEY }}
-      VM_HOST: ${{ secrets.AZURE_VM_HOST }}
-      VM_USER: ${{ secrets.AZURE_VM_USER }}
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      AKS_RESOURCE_GROUP: ${{ secrets.AKS_RESOURCE_GROUP }}
+      AKS_CLUSTER_NAME: ${{ secrets.AKS_CLUSTER_NAME }}
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    
+
+      
