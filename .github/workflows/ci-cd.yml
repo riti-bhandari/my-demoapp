@@ -12,9 +12,9 @@ on:
   push:
     branches: [release,main]
 
- env:
-    environment: ${{ github.ref == 'refs/heads/release' && 'prod' || 'dev' }}
-    release_name: my-app-${{ env.environment }}
+# env:
+#   environment: ${{ github.ref == 'refs/heads/release' && 'prod' || 'dev' }}
+#   release_name: my-app-${{ env.environment }}
     
 jobs:
   call-unit-tests:
@@ -65,6 +65,7 @@ jobs:
       debug: true
       image-name: my-app
       image-tag: ${{ needs.release.outputs.latest-tag }}
+  env:
       environment: ${{ env.environment }}
       release_name: ${{ env.release_name }}
       namespace: ${{ env.environment }}
