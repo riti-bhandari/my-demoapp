@@ -10,8 +10,8 @@ on:
     branches: [main, release]
     types: [opened, synchronize, reopened]
 
-  push:
-    branches: [release, main]
+  # push:
+  #   branches: [release, main]
 
 jobs:
   call-unit-tests:
