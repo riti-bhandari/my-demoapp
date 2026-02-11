@@ -1,0 +1,6 @@
+apiVersion: v2 #Helm 3 standard
+name: my-demoapp #chart name
+description: A Helm chart for Kubernetes
+type: application #Tells Helm this chart deploys an app
+version: 0.1.0 #chart version
+appVersion: "1.16.0" #appVersion is NOT used in deployment Your pipeline passes the real image tag
