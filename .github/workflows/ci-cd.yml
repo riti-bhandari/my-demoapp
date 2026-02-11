@@ -74,3 +74,4 @@ jobs:
       AKS_RESOURCE_GROUP: ${{ secrets.AKS_RESOURCE_GROUP }}
       AKS_CLUSTER_NAME: ${{ secrets.AKS_CLUSTER_NAME }}
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+
