@@ -65,26 +65,26 @@ jobs:
 
 
 
-  deploy:
-    name: Deploy to AKS with Helm
-    needs: [release]
-    uses: riti-bhandari/CICD_demoapp/.github/workflows/deploy-helm.yml@main
-    with:
-      debug: true
-      image-name: my-app
-      image-tag: ${{ needs.release.outputs.latest-tag }}
+  # deploy:
+  #   name: Deploy to AKS with Helm
+  #   needs: [release]
+  #   uses: riti-bhandari/CICD_demoapp/.github/workflows/deploy-helm.yml@main
+  #   with:
+  #     debug: true
+  #     image-name: my-app
+  #     image-tag: ${{ needs.release.outputs.latest-tag }}
 
-      # 🔑 Dynamic env resolution (NO env: block)
-      environment: ${{ github.ref == 'refs/heads/release' && 'prod' || 'dev' }}
-      release_name: my-app-${{ github.ref == 'refs/heads/release' && 'prod' || 'dev' }}
-      namespace: ${{ github.ref == 'refs/heads/release' && 'prod' || 'dev' }}
-      helm-values-file: ${{ github.ref == 'refs/heads/release' && 'values-prod.yaml' || 'values-dev.yaml' }}
+  #     # 🔑 Dynamic env resolution (NO env: block)
+  #     environment: ${{ github.ref == 'refs/heads/release' && 'prod' || 'dev' }}
+  #     release_name: my-app-${{ github.ref == 'refs/heads/release' && 'prod' || 'dev' }}
+  #     namespace: ${{ github.ref == 'refs/heads/release' && 'prod' || 'dev' }}
+  #     helm-values-file: ${{ github.ref == 'refs/heads/release' && 'values-prod.yaml' || 'values-dev.yaml' }}
 
-    secrets:
-      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      AKS_RESOURCE_GROUP: ${{ secrets.AKS_RESOURCE_GROUP }}
-      AKS_CLUSTER_NAME: ${{ secrets.AKS_CLUSTER_NAME }}
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+  #   secrets:
+  #     AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  #     AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  #     AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  #     AKS_RESOURCE_GROUP: ${{ secrets.AKS_RESOURCE_GROUP }}
+  #     AKS_CLUSTER_NAME: ${{ secrets.AKS_CLUSTER_NAME }}
+  #     DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
 
