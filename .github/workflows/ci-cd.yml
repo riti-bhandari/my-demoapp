@@ -8,14 +8,11 @@ permissions:
 on:
   pull_request:
     branches: [main, release]
-    types:  [opened, synchronize, reopened]
-  push:
-    branches: [release,main]
+    types: [opened, synchronize, reopened]
 
-# env:
-#   environment: ${{ github.ref == 'refs/heads/release' && 'prod' || 'dev' }}
-#   release_name: my-app-${{ env.environment }}
-    
+  # push:
+  #   branches: [release, main]
+
 jobs:
   call-unit-tests:
     name: Unit Tests
@@ -23,8 +20,7 @@ jobs:
     with:
       working-directory: .
 
-
-  call-security-checks: 
+  call-security-checks:
     name: Security code checks
     uses: riti-bhandari/CICD_demoapp/.github/workflows/Security-checks.yml@main
     with:
@@ -42,10 +38,10 @@ jobs:
 
   release:
     name: Tag and Push Docker Image
-    if: >
-        github.event_name == 'push' &&
-        ( github.ref == 'refs/heads/release' || github.ref == 'refs/heads/main')
-    
+    # if: >
+    #   github.event_name == 'push' &&
+    #   (github.ref == 'refs/heads/release' || github.ref == 'refs/heads/main')
+
     uses: riti-bhandari/CICD_demoapp/.github/workflows/tag-push.yml@main
     secrets:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -55,7 +51,19 @@ jobs:
       image-name: my-app
       build-context: .
       dockerfile-path: Dockerfile
-  
+
+  update-deployment:
+    name: Update Deployment Repo
+    needs: release
+    uses: riti-bhandari/CICD_demoapp/.github/workflows/update-deployment-tag.yml@main
+    with:
+      image-tag: ${{ needs.release.outputs.latest-tag }}
+      deployment-repo: riti-bhandari/deployment-repo
+      values-file: values-dev.yaml
+    secrets:
+      GH_PAT: ${{ secrets.GH_PAT }}
+
+
 
   deploy:
     name: Deploy to AKS with Helm
@@ -65,11 +73,13 @@ jobs:
       debug: true
       image-name: my-app
       image-tag: ${{ needs.release.outputs.latest-tag }}
-  env:
-      environment: ${{ env.environment }}
-      release_name: ${{ env.release_name }}
-      namespace: ${{ env.environment }}
-      helm-values-file: ${{ env.environment == 'prod' && 'values-prod.yaml' || 'values-dev.yaml' }}
+
+      # 🔑 Dynamic env resolution (NO env: block)
+      environment: ${{ github.ref == 'refs/heads/release' && 'prod' || 'dev' }}
+      release_name: my-app-${{ github.ref == 'refs/heads/release' && 'prod' || 'dev' }}
+      namespace: ${{ github.ref == 'refs/heads/release' && 'prod' || 'dev' }}
+      helm-values-file: ${{ github.ref == 'refs/heads/release' && 'values-prod.yaml' || 'values-dev.yaml' }}
+
     secrets:
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
@@ -78,5 +88,3 @@ jobs:
       AKS_CLUSTER_NAME: ${{ secrets.AKS_CLUSTER_NAME }}
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
 
-
-      
