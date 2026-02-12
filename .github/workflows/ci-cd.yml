@@ -52,6 +52,19 @@ jobs:
       build-context: .
       dockerfile-path: Dockerfile
 
+  update-deployment:
+    name: Update Deployment Repo
+    needs: release
+    uses: riti-bhandari/CICD_demoapp/.github/workflows/update-deployment-tag.yml@main
+    with:
+      image-tag: ${{ needs.release.outputs.latest-tag }}
+      deployment-repo: riti-bhandari/deployment-repo
+      values-file: values-dev.yaml
+    secrets:
+      GH_PAT: ${{ secrets.GH_PAT }}
+
+
+
   deploy:
     name: Deploy to AKS with Helm
     needs: [release]
