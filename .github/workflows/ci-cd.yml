@@ -8,14 +8,11 @@ permissions:
 on:
   pull_request:
     branches: [main, release]
-    types:  [opened, synchronize, reopened]
-  push:
-    branches: [release,main]
+    types: [opened, synchronize, reopened]
 
-# env:
-#   environment: ${{ github.ref == 'refs/heads/release' && 'prod' || 'dev' }}
-#   release_name: my-app-${{ env.environment }}
-    
+  # push:
+  #   branches: [release, main]
+
 jobs:
   call-unit-tests:
     name: Unit Tests
@@ -23,8 +20,7 @@ jobs:
     with:
       working-directory: .
 
-
-  call-security-checks: 
+  call-security-checks:
     name: Security code checks
     uses: riti-bhandari/CICD_demoapp/.github/workflows/Security-checks.yml@main
     with:
@@ -42,10 +38,10 @@ jobs:
 
   release:
     name: Tag and Push Docker Image
-    if: >
-        github.event_name == 'push' &&
-        ( github.ref == 'refs/heads/release' || github.ref == 'refs/heads/main')
-    
+    # if: >
+    #   github.event_name == 'push' &&
+    #   (github.ref == 'refs/heads/release' || github.ref == 'refs/heads/main')
+
     uses: riti-bhandari/CICD_demoapp/.github/workflows/tag-push.yml@main
     secrets:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -55,28 +51,42 @@ jobs:
       image-name: my-app
       build-context: .
       dockerfile-path: Dockerfile
-  
 
-  deploy:
-    name: Deploy to AKS with Helm
+  update-deployment:
+    name: Update Deployment Repo
     needs: [release]
-    uses: riti-bhandari/CICD_demoapp/.github/workflows/deploy-helm.yml@main
-    with:
-      debug: true
-      image-name: my-app
-      image-tag: ${{ needs.release.outputs.latest-tag }}
-  env:
-      environment: ${{ env.environment }}
-      release_name: ${{ env.release_name }}
-      namespace: ${{ env.environment }}
-      helm-values-file: ${{ env.environment == 'prod' && 'values-prod.yaml' || 'values-dev.yaml' }}
+    uses: riti-bhandari/CICD_demoapp/.github/workflows/update-deployment-tag.yml@main
     secrets:
-      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      AKS_RESOURCE_GROUP: ${{ secrets.AKS_RESOURCE_GROUP }}
-      AKS_CLUSTER_NAME: ${{ secrets.AKS_CLUSTER_NAME }}
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      GH_PAT: ${{ secrets.GH_PAT }}
+    with:
+      image-tag: ${{ needs.release.outputs.latest-tag }}
+      deployment-repo: riti-bhandari/deployment-repo
+      environment: ${{ github.base_ref == 'release' && 'prod' || 'dev' }}
 
 
-      
+
+
+
+  # deploy:
+  #   name: Deploy to AKS with Helm
+  #   needs: [release]
+  #   uses: riti-bhandari/CICD_demoapp/.github/workflows/deploy-helm.yml@main
+  #   with:
+  #     debug: true
+  #     image-name: my-app
+  #     image-tag: ${{ needs.release.outputs.latest-tag }}
+
+  #     # 🔑 Dynamic env resolution (NO env: block)
+  #     environment: ${{ github.ref == 'refs/heads/release' && 'prod' || 'dev' }}
+  #     release_name: my-app-${{ github.ref == 'refs/heads/release' && 'prod' || 'dev' }}
+  #     namespace: ${{ github.ref == 'refs/heads/release' && 'prod' || 'dev' }}
+  #     helm-values-file: ${{ github.ref == 'refs/heads/release' && 'values-prod.yaml' || 'values-dev.yaml' }}
+
+  #   secrets:
+  #     AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  #     AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  #     AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  #     AKS_RESOURCE_GROUP: ${{ secrets.AKS_RESOURCE_GROUP }}
+  #     AKS_CLUSTER_NAME: ${{ secrets.AKS_CLUSTER_NAME }}
+  #     DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+
