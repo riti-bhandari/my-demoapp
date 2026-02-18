@@ -75,8 +75,8 @@ jobs:
       deployment-repo: riti-bhandari/deployment-repo
       env: ${{ github.base_ref == 'release' && 'prod' || 'dev' }} #github.base_ref gives target branch of a PR
       app: app1
-      region: us
-      cluster: cluster
+      region: eu
+
       
 
 
