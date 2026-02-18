@@ -62,7 +62,7 @@ jobs:
       image-tag: ${{ needs.release.outputs.latest-tag }}
       deployment-repo: riti-bhandari/deployment-repo
       env: ${{ github.base_ref == 'release' && 'prod' || 'dev' }} #github.base_ref gives target branch of a PR
-      APP: app1
+      app: app1
 
   deploy:
     name: deploy
