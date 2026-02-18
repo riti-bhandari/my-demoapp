@@ -1,4 +1,4 @@
-name: Docker CI/CD Multi-Branch Pipeline
+name: Docker CI-CD Multi-Branch Pipelinee
 
 permissions:
   contents: write
@@ -55,13 +55,29 @@ jobs:
   update-deployment:
     name: Update Deployment Repo
     needs: [release]
-    uses: riti-bhandari/CICD_demoapp/.github/workflows/update-deployment-tag.yml@main
+    uses: riti-bhandari/CICD_demoapp/.github/workflows/update-tag-chart.yml@main
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}
     with:
       image-tag: ${{ needs.release.outputs.latest-tag }}
       deployment-repo: riti-bhandari/deployment-repo
-      environment: ${{ github.base_ref == 'release' && 'prod' || 'dev' }}
+      env: ${{ github.base_ref == 'release' && 'prod' || 'dev' }} #github.base_ref gives target branch of a PR
+      APP: app1
+
+  deploy:
+    name: deploy
+    needs: [update-deployment]
+    uses: riti-bhandari/deployment-repo/.github/workflows/cd.yml@main
+    secrets:
+      GH_PAT: ${{ secrets.GH_PAT }}
+    with:
+      image-tag: ${{ needs.release.outputs.latest-tag }}
+      deployment-repo: riti-bhandari/deployment-repo
+      env: ${{ github.base_ref == 'release' && 'prod' || 'dev' }} #github.base_ref gives target branch of a PR
+      app: app1
+      region: eu
+
+      
 
 
 
@@ -89,4 +105,3 @@ jobs:
   #     AKS_RESOURCE_GROUP: ${{ secrets.AKS_RESOURCE_GROUP }}
   #     AKS_CLUSTER_NAME: ${{ secrets.AKS_CLUSTER_NAME }}
   #     DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-
