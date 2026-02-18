@@ -55,13 +55,15 @@ jobs:
   update-deployment:
     name: Update Deployment Repo
     needs: [release]
-    uses: riti-bhandari/CICD_demoapp/.github/workflows/update-deployment-tag.yml@main
+    uses: riti-bhandari/CICD_demoapp/.github/workflows/update-tag-chart.yml@main
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}
     with:
       image-tag: ${{ needs.release.outputs.latest-tag }}
       deployment-repo: riti-bhandari/deployment-repo
-      environment: ${{ github.base_ref == 'release' && 'prod' || 'dev' }}
+      env: ${{ github.base_ref == 'release' && 'prod' || 'dev' }} #github.base_ref gives target branch of a PR
+      APP: app1
+      
 
 
 
