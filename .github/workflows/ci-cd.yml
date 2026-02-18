@@ -68,10 +68,7 @@ jobs:
     name: deploy
     needs: [update-deployment]
     uses: riti-bhandari/deployment-repo/.github/workflows/cd.yml@main
-    secrets:
-      GH_PAT: ${{ secrets.GH_PAT }}
     with:
-      deployment-repo: riti-bhandari/deployment-repo
       env: ${{ github.base_ref == 'release' && 'prod' || 'dev' }} #github.base_ref gives target branch of a PR
       app: app1
       region: eu
