@@ -1,4 +1,4 @@
-name: Docker CI-CD Multi-Branch Pipeline
+name: Docker CI/CD Multi-Branch Pipeline
 
 permissions:
   contents: write
@@ -59,6 +59,7 @@ jobs:
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}
     with:
+      debug: true
       image-tag: ${{ needs.release.outputs.latest-tag }}
       deployment-repo: riti-bhandari/deployment-repo
       env: ${{ github.base_ref == 'release' && 'prod' || 'dev' }} #github.base_ref gives target branch of a PR
@@ -69,7 +70,6 @@ jobs:
     needs: [update-deployment]
     uses: riti-bhandari/deployment-repo/.github/workflows/cd.yml@main
     with:
-      debug: true
       env: dev
       # ${{ github.base_ref == 'release' && 'prod' || 'dev' }} #github.base_ref gives target branch of a PR
       app: app1
