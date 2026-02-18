@@ -71,7 +71,6 @@ jobs:
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}
     with:
-      image-tag: ${{ needs.release.outputs.latest-tag }}
       deployment-repo: riti-bhandari/deployment-repo
       env: ${{ github.base_ref == 'release' && 'prod' || 'dev' }} #github.base_ref gives target branch of a PR
       app: app1
