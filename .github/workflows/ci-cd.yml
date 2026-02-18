@@ -69,6 +69,7 @@ jobs:
     needs: [update-deployment]
     uses: riti-bhandari/deployment-repo/.github/workflows/cd.yml@main
     with:
+      debug: true
       env: dev
       # ${{ github.base_ref == 'release' && 'prod' || 'dev' }} #github.base_ref gives target branch of a PR
       app: app1
