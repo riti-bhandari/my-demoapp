@@ -73,6 +73,7 @@ jobs:
       # ${{ github.base_ref == 'release' && 'prod' || 'dev' }} #github.base_ref gives target branch of a PR
       app: app1
       region: eu
+      latest-chart: ${{ needs.update-deployment.outputs.chart-version }}
 
       
 
