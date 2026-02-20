@@ -75,7 +75,10 @@ jobs:
       app: app1
       region: eu
       latest-chart: ${{ needs.update-deployment.outputs.chart-version }}
-
+    secrets: 
+      AZURE_VM_IP: ${{ secrets.AZURE_VM_IP }}
+      AZURE_VM_USER: ${{ secrets.AZURE_VM_USER }}
+      AZURE_VM_SSH_KEY: ${{ secrets.AZURE_VM_SSH_KEY }}
       
 
 
