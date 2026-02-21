@@ -1,4 +1,4 @@
-name: Docker CI/CD Multi-Branch Pipeline
+name: Docker CI-CD Multi-Branch Pipeline
 
 permissions:
   contents: write
@@ -70,15 +70,15 @@ jobs:
     needs: [update-deployment]
     uses: riti-bhandari/deployment-repo/.github/workflows/cd-prod.yml@main
     with:
-      env: prod
-      # ${{ github.base_ref == 'release' && 'prod' || 'dev' }} #github.base_ref gives target branch of a PR
+      resource-group: rg-aks-dev
+      cluster-name:  aks-dev-cluster
+      env: ${{ github.base_ref == 'release' && 'prod' || 'dev' }} #github.base_ref gives target branch of a PR
       app: app1
       region: eu
       latest-chart: ${{ needs.update-deployment.outputs.chart-version }}
     secrets: 
-      AZURE_VM_IP: ${{ secrets.AZURE_VM_IP }}
-      AZURE_VM_USER: ${{ secrets.AZURE_VM_USER }}
-      AZURE_VM_SSH_KEY: ${{ secrets.AZURE_VM_SSH_KEY }}
+       AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+
       
 
 
