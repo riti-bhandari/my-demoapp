@@ -1,29 +1,125 @@
-apiVersion: v1
-kind: Pod
-metadata:
-  name: "{{ include "my-demoapp.fullname" . }}-test"
-  annotations:
-    "helm.sh/hook": test
-spec:
-  containers:
-    - name: curl
-      image: curlimages/curl
-      command: ['curl']
-      args: ['http://{{ include "my-demoapp.fullname" . }}:{{ .Values.service.port }}']
-  restartPolicy: Never
+
+name: Update Deployment Repo Image Tag
+
+
+on:
+  workflow_call:
+    inputs:
+      image-tag:
+        required: true
+        type: string
+      environment:
+        required: true
+        type: string
+      deployment-repo:
+        required: true
+        type: string
+    secrets:
+      GH_PAT:
+        required: true
+
+
+permissions:
+  contents: write
+
+
+jobs:
+  update-tag:
+    runs-on: ubuntu-latest
+
+
+    steps:
+      # 1️⃣ Checkout Deployment Repo
+      - name: Checkout deployment repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.deployment-repo }}
+          token: ${{ secrets.GH_PAT }}
+          path: deployment-repo
+          fetch-depth: 2   # IMPORTANT for git diff
+
+
+      # 2️⃣ Install yq
+      - name: Install yq
+        run: |
+          sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
+          sudo chmod +x /usr/bin/yq
+
+
+      # 3️⃣ Update Image Tag + App Version
+      - name: Update image tag and appVersion
+        run: |
+          cd deployment-repo
+         
+          VALUES_FILE="environments/${{ inputs.environment }}/values.yaml"
+          CHART_FILE="helm-chart/Chart.yaml"
+         
+          echo "Updating image tag in: $VALUES_FILE"
+          yq e ".image.tag = \"${{ inputs.image-tag }}\"" -i $VALUES_FILE
+         
+          echo "Updating appVersion in: $CHART_FILE"
+          yq e ".appVersion = \"${{ inputs.image-tag }}\"" -i $CHART_FILE
+
+
+      # 4️⃣ Bump Chart Version ONLY if helm-chart changed
+      - name: Bump Chart Version if helm-chart changed
+        run: |
+          cd deployment-repo
+
+
+          echo "Checking for changes that require chart version bump..."
+
+
+          # Check if anything changed inside helm-chart or values.yaml
+          CHANGED_FILES=$(git status --porcelain | grep -E 'helm-chart/|values.yaml' || true)
+
+
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No relevant changes detected. Skipping chart version bump."
+            exit 0
+          fi
+
+
+          echo "Changes detected:"
+          echo "$CHANGED_FILES"
+
+
+          CURRENT_VERSION=$(yq e '.version' helm-chart/Chart.yaml)
+          echo "Current Version: $CURRENT_VERSION"
+
+
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+
+
+          PATCH=$((PATCH + 1))
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+
+
+          echo "New Version: $NEW_VERSION"
+
+
+          yq e -i ".version = \"$NEW_VERSION\"" helm-chart/Chart.yaml
+
+
+          echo "Chart version bumped successfully."
 
 
 
 
+      # 5️⃣ Commit Changes
+      - name: Commit changes
+        run: |
+          cd deployment-repo
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
 
 
+          git add .
+          git commit -m "Update image tag to ${{ inputs.image-tag }} and bump chart version for ${{ inputs.environment }}" || echo "No changes to commit"
 
 
-
-
-
-
-
-
-
-
+      # 6️⃣ Push Changes
+      - name: Push changes
+        run: |
+          cd deployment-repo
+          git push
