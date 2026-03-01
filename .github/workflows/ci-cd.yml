@@ -1,4 +1,4 @@
-name: Docker CI/CD Multi-Branch Pipeline
+name: Docker CI-CD Multi-Branch Pipeline
 
 permissions:
   contents: write
@@ -71,8 +71,8 @@ jobs:
     uses: riti-bhandari/deployment-repo/.github/workflows/cd-prod.yml@main
     with:
       deployment-repo: riti-bhandari/deployment-repo
-      resource-group: aks-RG1
-      cluster-name:  aks-dev-cluster
+      resource-group: dev-rg
+      cluster-name:  dev-centralindia-aks
       env: ${{ github.base_ref == 'release' && 'prod' || 'dev' }} #github.base_ref gives target branch of a PR
       app: app1
       region: eu
