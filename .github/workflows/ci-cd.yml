@@ -1,4 +1,4 @@
-name: Docker CI/CD Multi-Branch Pipelinee
+name: Docker CI-CD Multi-Branch Pipelinee
 
 permissions:
   contents: write
