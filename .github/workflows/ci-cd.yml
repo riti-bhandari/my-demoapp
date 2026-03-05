@@ -1,4 +1,4 @@
-name: Docker CI-CD Multi-Branch Pipelinee
+name: Docker CI/CD Multi-Branch Pipelinee
 
 permissions:
   contents: write
@@ -70,7 +70,7 @@ jobs:
   deploy:
     name: deploy
     needs: [update-deployment]
-    uses: riti-bhandari/deployment-repo/.github/workflows/cd-prod.yml@main
+    uses: riti-bhandari/deployment-repo/.github/workflows/cd-kind.yml@main
     with:
       deployment-repo: riti-bhandari/deployment-repo
       env: ${{ github.base_ref == 'release' && 'prod' || 'dev' }} #github.base_ref gives target branch of a PR
